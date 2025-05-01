@@ -1260,6 +1260,16 @@ moves_loop:  // When in check, search starts here
         // Decrease/increase reduction for moves with a good/bad history
         r -= ss->statScore * 826 / 8192;
 
+        if (ss->inCheck)
+        {
+            Move prevMove = (ss-1)->currentMove;
+            if (prevMove.is_ok()) {
+                Piece PcPushed = pos.piece_on(prevMove.from_sq());
+                if (type_of(PcPushed) == PAWN || type_of(PcPushed) == KNIGHT)
+                    r += 450;
+            }
+        }
+
         // Step 17. Late moves reduction / extension (LMR)
         if (depth >= 2 && moveCount > 1)
         {
