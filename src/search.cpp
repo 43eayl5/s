@@ -1144,8 +1144,12 @@ moves_loop:  // When in check, search starts here
             // (*Scaler) Generally, higher singularBeta (i.e closer to ttValue)
             // and lower extension margins scale well.
 
+            int min_depth_for_singular_search = 6 - (thisThread->completedDepth > 27) + ss->ttPv;
+            if (!ttCapture && min_depth_for_singular_search > 1)
+                min_depth_for_singular_search--;
+
             if (!rootNode && move == ttData.move && !excludedMove
-                && depth >= 6 - (thisThread->completedDepth > 27) + ss->ttPv
+                && depth >= min_depth_for_singular_search
                 && is_valid(ttData.value) && !is_decisive(ttData.value)
                 && (ttData.bound & BOUND_LOWER) && ttData.depth >= depth - 3)
             {
