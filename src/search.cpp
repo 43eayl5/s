@@ -936,7 +936,7 @@ Value Search::Worker::search(
         assert(probCutBeta < VALUE_INFINITE && probCutBeta > beta);
 
         MovePicker mp(pos, ttData.move, probCutBeta - ss->staticEval, &thisThread->captureHistory);
-        Depth      probCutDepth = std::max(depth - 4, 0);
+        const Depth baseProbCutDepth = std::max(depth - 4, 0);
 
         while ((move = mp.next_move()) != Move::none())
         {
@@ -946,6 +946,10 @@ Value Search::Worker::search(
                 continue;
 
             assert(pos.capture_stage(move));
+
+            Depth currentProbCutDepth = baseProbCutDepth;
+            if (ttData.move != Move::none() && move == ttData.move)
+                currentProbCutDepth = std::max(depth - 3, 0);
 
             movedPiece = pos.moved_piece(move);
 
@@ -962,8 +966,8 @@ Value Search::Worker::search(
             value = -qsearch<NonPV>(pos, ss + 1, -probCutBeta, -probCutBeta + 1);
 
             // If the qsearch held, perform the regular search
-            if (value >= probCutBeta && probCutDepth > 0)
-                value = -search<NonPV>(pos, ss + 1, -probCutBeta, -probCutBeta + 1, probCutDepth,
+            if (value >= probCutBeta && currentProbCutDepth > 0)
+                value = -search<NonPV>(pos, ss + 1, -probCutBeta, -probCutBeta + 1, currentProbCutDepth,
                                        !cutNode);
 
             undo_move(pos, move);
@@ -972,7 +976,7 @@ Value Search::Worker::search(
             {
                 // Save ProbCut data into transposition table
                 ttWriter.write(posKey, value_to_tt(value, ss->ply), ss->ttPv, BOUND_LOWER,
-                               probCutDepth + 1, move, unadjustedStaticEval, tt.generation());
+                               currentProbCutDepth + 1, move, unadjustedStaticEval, tt.generation());
 
                 if (!is_decisive(value))
                     return value - (probCutBeta - beta);
