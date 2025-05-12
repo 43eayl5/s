@@ -1799,6 +1799,9 @@ Value Search::Worker::qsearch(Position& pos, Stack* ss, Value alpha, Value beta)
 }
 
 Depth Search::Worker::reduction(bool i, Depth d, int mn, int delta) const {
+    if (d <= 2 || mn <= 2)
+        return (1350 - delta * 794 / rootDelta + !i * 350) + (d * 50) + (mn * 30);
+
     int reductionScale = reductions[d] * reductions[mn];
     return reductionScale - delta * 794 / rootDelta + !i * reductionScale * 205 / 512 + 1086;
 }
