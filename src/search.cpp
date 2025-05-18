@@ -1135,6 +1135,10 @@ moves_loop:  // When in check, search starts here
                 extension =
                   1 + (value < singularBeta - doubleMargin) + (value < singularBeta - tripleMargin);
 
+                if (!ttCapture && is_valid(ttData.eval) && !is_decisive(ttData.value)
+                    && !is_decisive(ttData.eval) && (ttData.value - ttData.eval > 512))
+                    extension++;
+
                 depth++;
             }
 
