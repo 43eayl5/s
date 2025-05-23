@@ -1139,7 +1139,13 @@ moves_loop:  // When in check, search starts here
             && !is_decisive(ttData.value) && (ttData.bound & BOUND_LOWER)
             && ttData.depth >= depth - 3)
         {
-            Value singularBeta  = ttData.value - (58 + 76 * (ss->ttPv && !PvNode)) * depth / 57;
+            int ori_singularBeta = (58 + 76 * (ss->ttPv && !PvNode)) * depth / 57;
+            int adj_singularBeta = 
+                (ttData.depth >= depth)
+                    ? std::max(int(PawnValue / 8), ori_singularBeta - std::min((ttData.depth - (depth - 1)) * 4, ori_singularBeta / 3))
+                    : ori_singularBeta;
+
+            Value singularBeta = ttData.value - adj_singularBeta;
             Depth singularDepth = newDepth / 2;
 
             ss->excludedMove = move;
