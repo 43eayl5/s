@@ -1131,12 +1131,19 @@ moves_loop:  // When in check, search starts here
 
             if (value < singularBeta)
             {
+                const int historyScore = thisThread->mainHistory[us][move.from_to()]
+                                       + (*(ss - 1)->continuationHistory)[movedPiece][move.to_sq()];
+
+                const int historyAdjustment = std::clamp(historyScore / 2048, -50, 75);
+
                 int corrValAdj   = std::abs(correctionValue) / 248400;
                 int doubleMargin = -4 + 244 * PvNode - 206 * !ttCapture - corrValAdj
                                  - 997 * ttMoveHistory / 131072
-                                 - (ss->ply > thisThread->rootDepth) * 47;
+                                 - (ss->ply > thisThread->rootDepth) * 47
+                                 - historyAdjustment;
                 int tripleMargin = 84 + 269 * PvNode - 253 * !ttCapture + 91 * ss->ttPv - corrValAdj
-                                 - (ss->ply * 2 > thisThread->rootDepth * 3) * 54;
+                                 - (ss->ply * 2 > thisThread->rootDepth * 3) * 54
+                                 - historyAdjustment;
 
                 extension =
                   1 + (value < singularBeta - doubleMargin) + (value < singularBeta - tripleMargin);
