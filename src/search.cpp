@@ -542,6 +542,7 @@ void Search::Worker::clear() {
     pawnCorrectionHistory.fill(5);
     minorPieceCorrectionHistory.fill(0);
     nonPawnCorrectionHistory.fill(0);
+    volatilityHistory.fill(0);
 
     ttMoveHistory = 0;
 
@@ -1227,6 +1228,9 @@ moves_loop:  // When in check, search starts here
         // Decrease/increase reduction for moves with a good/bad history
         r -= ss->statScore * 826 / 8192;
 
+        if (!capture && thisThread->volatilityHistory[movedPiece][move.to_sq()] > 0)
+            r -= std::min(512, thisThread->volatilityHistory[movedPiece][move.to_sq()] * 64);
+
         // Step 17. Late moves reduction / extension (LMR)
         if (depth >= 2 && moveCount > 1)
         {
@@ -1484,6 +1488,19 @@ moves_loop:  // When in check, search starts here
         auto bonus = std::clamp(int(bestValue - ss->staticEval) * depth / 8,
                                 -CORRECTION_HISTORY_LIMIT / 4, CORRECTION_HISTORY_LIMIT / 4);
         update_correction_history(pos, ss, *thisThread, bonus);
+    }
+
+    if (!excludedMove && moveCount > 0 && (ss - 1)->currentMove.is_ok())
+    {
+        Square parentToSq = ((ss - 1)->currentMove).to_sq();
+        Piece  pc         = pos.piece_on(parentToSq);
+
+        if (pc != NO_PIECE)
+        {
+            int volatility = std::abs(bestValue - ss->staticEval);
+            int bonus = (volatility - int(PawnValue) / 4) / 16;
+            thisThread->volatilityHistory[pc][parentToSq] << bonus;
+        }
     }
 
     assert(bestValue > -VALUE_INFINITE && bestValue < VALUE_INFINITE);
