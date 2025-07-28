@@ -1020,7 +1020,7 @@ moves_loop:  // When in check, search starts here
         // Smaller or even negative value is better for short time controls
         // Bigger value is better for long time controls
         if (ss->ttPv)
-            r += 931;
+            r += 920;
 
         // Step 14. Pruning at shallow depth.
         // Depth conditions are important for mate finding.
@@ -1076,7 +1076,7 @@ moves_loop:  // When in check, search starts here
 
                 history += 71 * mainHistory[us][move.from_to()] / 32;
 
-                lmrDepth += history / 3233;
+                lmrDepth += history / 3140;
 
                 Value baseFutility = (bestMove ? 46 : 230);
                 Value futilityValue =
@@ -1173,7 +1173,7 @@ moves_loop:  // When in check, search starts here
 
         // Decrease reduction for PvNodes (*Scaler)
         if (ss->ttPv)
-            r -= 2510 + PvNode * 963 + (ttData.value > alpha) * 916
+            r -= 2600 + PvNode * 963 + (ttData.value > alpha) * 916
                + (ttData.depth >= depth) * (943 + cutNode * 1180);
 
         // These reduction adjustments have no proven non-linear scaling
@@ -1192,13 +1192,13 @@ moves_loop:  // When in check, search starts here
 
         // Increase reduction if next ply has a lot of fail high
         if ((ss + 1)->cutoffCnt > 2)
-            r += 935 + allNode * 763;
+            r += 910 + allNode * 740;
 
         r += (ss + 1)->quietMoveStreak * 51;
 
         // For first picked move (ttMove) reduce reduction
         if (move == ttData.move)
-            r -= 2043;
+            r -= 2070;
 
         if (capture)
             ss->statScore = 782 * int(PieceValue[pos.captured_piece()]) / 128
@@ -1232,7 +1232,7 @@ moves_loop:  // When in check, search starts here
             {
                 // Adjust full-depth search based on LMR results - if the result was
                 // good enough search deeper, if it was bad enough search shallower.
-                const bool doDeeperSearch    = value > (bestValue + 43 + 2 * newDepth);
+                const bool doDeeperSearch    = value > (bestValue + 41 + 2 * newDepth);
                 const bool doShallowerSearch = value < bestValue + 9;
 
                 newDepth += doDeeperSearch - doShallowerSearch;
@@ -1581,7 +1581,7 @@ Value Search::Worker::qsearch(Position& pos, Stack* ss, Value alpha, Value beta)
         if (bestValue > alpha)
             alpha = bestValue;
 
-        futilityBase = ss->staticEval + 352;
+        futilityBase = ss->staticEval + 365;
     }
 
     const PieceToHistory* contHist[] = {(ss - 1)->continuationHistory,
