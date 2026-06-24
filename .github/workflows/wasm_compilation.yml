@@ -1,6 +1,9 @@
 name: WASM Compilation
 
 on:
+  push:
+    branches:
+      - wasm
   workflow_dispatch:
   workflow_call:
 
